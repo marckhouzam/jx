@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bytes"
 	"io"
 
 	"github.com/jenkins-x/jx/pkg/jx/cmd/templates"
@@ -34,9 +33,33 @@ var (
 			$ jx completion bash > ~/.jx/bash
 			$ source ~/.jx/bash
 
-		If you use zsh[1], the following will load jx zsh completion:
+		If you use zsh[1], doing the following will enable jx zsh completion.
 
-		    $ source <(jx completion zsh)
+		With oh-my-zsh:
+
+			Create a custom plugin for jx since none is currently available:
+
+			    $ mkdir -p ${ZSH_CUSTOM}/plugins/jx
+			    $ jx completion zsh>${ZSH_CUSTOM}/plugins/jx/_jx
+
+			In your .zshrc file, enable the plugin by adding it to your plugin list:
+
+			    plugins=(… jx)
+
+			Finally, start a new shell to have jx zsh completions working.
+
+		Manual installation:
+
+			First create a directory where you will put the completion script:
+
+			    $ mkdir ${HOME}/.jx-completion
+
+			Then add the following to your .zshrc file:
+
+			    fpath=(${HOME}/.jx-completion $fpath)
+			    jx completion zsh>${HOME}/.jx-completion/_jx
+
+			Finally, start a new shell to have jx zsh completions working.
 
 		[1] zsh completions are only supported in versions of zsh >= 5.2`)
 )
@@ -130,16 +153,5 @@ func runCompletionZsh(out io.Writer, cmd *cobra.Command) error {
 			return err
 		}
 	}
-	zsh_initialization := `
-`
-	out.Write([]byte(zsh_initialization))
-
-	buf := new(bytes.Buffer)
-	cmd.GenBashCompletion(buf)
-	out.Write(buf.Bytes())
-
-	zsh_tail := `
-`
-	out.Write([]byte(zsh_tail))
-	return nil
+	return cmd.GenZshCompletion(out)
 }
